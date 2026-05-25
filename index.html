@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -509,16 +509,25 @@
                         <label class="form-label">Machine/Parts Name</label>
                         <select class="form-select" name="machinePartsName" required>
                             <option value="">Select machine/part...</option>
-                            <option>Hot Melt Unit - Series 4</option>
-                            <option>Cold Glue Applicator</option>
-                            <option>Pneumatic Pump - Model X</option>
-                            <option>Electric Gear Pump - Pro</option>
-                            <option>Adhesive Tank - 200L</option>
-                            <option>Pattern Controller - Gen 3</option>
-                            <option>Hose Assembly - 4m</option>
-                            <option>Nozzle Block - Standard</option>
-                            <option>Filter Kit - Annual</option>
-                            <option>Sensor Array - IR</option>
+                            <option>D10 Unit</option>
+                            <option>D4e Unit</option>
+                            <option>D4e Labelling Unit</option>
+                            <option>NC04</option>
+                            <option>NC08</option>
+                            <option>FM04</option>
+                            <option>FM08</option>
+                            <option>Kube04</option>
+                            <option>Kube08</option>
+                            <option>ERO System</option>
+                            <option>Flexmelt</option>
+                            <option>Smartmelt</option>
+                            <option>Isomelt</option>
+                            <option>Bobst Kit</option>
+                            <option>Martin Kit</option>
+                            <option>Akura PF 1050</option>
+                            <option>Tab Trim Remover</option>
+                            <option>Cold Glue System</option>
+                            <option>Other</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -536,8 +545,8 @@
                             <option>New Customer</option>
                             <option>Existing Customer</option>
                             <option>VIP Customer</option>
-                            <option>Corporate</option>
                             <option>Distributor</option>
+                            <option>Internal</option>   
                         </select>
                     </div>
                     <div class="form-group">
@@ -553,6 +562,9 @@
                             <option>PRINT FINISHING</option>
                             <option>PRODUCT ASSEMBLY</option>
                             <option>WOODWORKING</option>
+                            <option>BOTTLE LABELLING</option>
+                            <option>BAGS</option>
+                            <option>COURIER BAGS</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1005,7 +1017,7 @@
             orderNo: ['order no', 'orderno', 'order number', 'order_no', 'order #', 'order'],
             invoiceId: ['invoice id', 'invoiceid', 'invoice number', 'invoice_no', 'invoice#', 'invoice'],
             invoiceDate: ['invoice date', 'invoicedate', 'bill date', 'billing date', 'invoice_date'],
-            machinePartsName: ['machine parts name', 'machinepartsname', 'machine/part', 'machine parts', 'machineparts', 'machine_name', 'parts name', 'machine model'],
+            machinePartsName: ['machine parts name', 'machinepartsname', 'machine/part', 'machine parts', 'machineparts', 'machine_name', 'parts name'],
             partsId: ['parts id', 'partsid', 'part id', 'part_id', 'parts_id', 'part number', 'partnumber'],
             sellingPrice: ['selling price', 'sellingprice', 'price', 'amount', 'cost', 'unit price', 'selling_price'],
             customerType: ['customer type', 'customertype', 'client type', 'clienttype', 'customer_type', 'client_type'],
@@ -1573,7 +1585,7 @@ document.getElementById('reloadDemoBtn').addEventListener('click', () => {
             await tryLoadExternalExcel();
         }
 
-        async function tryLoadExternalExcel() {
+     async function tryLoadExternalExcel() {
             // Try multiple common paths where the Excel file might be located
             const pathsToTry = [
                 'MasterData.xlsx',           // Same folder as HTML
@@ -1673,7 +1685,7 @@ document.getElementById('reloadDemoBtn').addEventListener('click', () => {
                     orderNo: ['order no', 'orderno', 'order number', 'order_no', 'order #', 'order'],
                     invoiceId: ['invoice id', 'invoiceid', 'invoice number', 'invoice_no', 'invoice#', 'invoice'],
                     invoiceDate: ['invoice date', 'invoicedate', 'bill date', 'billing date', 'invoice_date'],
-                    machinePartsName: ['machine parts name', 'machinepartsname', 'machine/part', 'machine parts', 'machineparts', 'machine_name', 'parts name'],
+                    machinePartsName: ['machine parts name', 'machinepartsname', 'machine/part', 'machine parts', 'machineparts', 'machine_name', 'parts name', 'machine model'],
                     partsId: ['parts id', 'partsid', 'part id', 'part_id', 'parts_id', 'part number', 'partnumber'],
                     sellingPrice: ['selling price', 'sellingprice', 'price', 'amount', 'cost', 'unit price', 'selling_price'],
                     customerType: ['customer type', 'customertype', 'client type', 'clienttype', 'customer_type', 'client_type'],
