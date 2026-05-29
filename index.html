@@ -357,6 +357,7 @@
         }
     </style>
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <header class="app-header">
@@ -507,8 +508,8 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Machine/Parts Name</label>
-                        <select class="form-select" name="machinePartsName" required>
-                            <option value="">Select machine/part...</option>
+                        <input type="text" class="form-input" name="machinePartsName" required placeholder="Type or select machine/part..." list="machinePartsList">
+                        <datalist id="machinePartsList">
                             <option>D10 Unit</option>
                             <option>D4e Unit</option>
                             <option>D4e Labelling Unit</option>
@@ -529,7 +530,7 @@
                             <option>Tab Trim Remover</option>
                             <option>Cold Glue System</option>
                             <option>Other</option>
-                        </select>
+                        </datalist>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Parts ID</label>
