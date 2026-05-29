@@ -1387,7 +1387,7 @@
             document.getElementById('dataSourceTitle').textContent = 'Excel Data Loaded';
             document.getElementById('dataSourceDetail').textContent = 
                 importedRecords.length.toLocaleString() + ' records imported in ' + elapsed.toFixed(1) + 's';
-            document.getElementById('reloadDemoBtn').style.display = 'inline-flex';
+            document.getElementById('reloadDemoBtn').style.display = 'none';
             document.getElementById('saveToExcelBtn').style.display = 'inline-flex';
 
             if (gridApi) {
@@ -1738,7 +1738,7 @@ document.getElementById('reloadDemoBtn').addEventListener('click', () => {
 
                     document.getElementById('dataSourceTitle').textContent = 'Pre-loaded Excel Data (' + sourceName + ')';
                     document.getElementById('dataSourceDetail').textContent = importedRecords.length.toLocaleString() + ' records loaded from ' + sourceName;
-                    document.getElementById('reloadDemoBtn').style.display = 'inline-flex';
+                    document.getElementById('reloadDemoBtn').style.display = 'none';
                     document.getElementById('saveToExcelBtn').style.display = 'inline-flex';
 
                     showToast('Loaded ' + importedRecords.length + ' records from ' + sourceName, 'success');
