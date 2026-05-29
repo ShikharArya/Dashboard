@@ -1032,7 +1032,10 @@
         let columnMapping = {};
 
         document.getElementById('importExcelBtn').addEventListener('click', () => {
-            resetExcelModal(); excelModal.classList.add('active');
+            console.log('[Import] Import Excel button clicked');
+            resetExcelModal(); 
+            excelModal.classList.add('active');
+            console.log('[Import] Modal opened:', excelModal.classList.contains('active'));
         });
         document.getElementById('closeExcelModal').addEventListener('click', closeExcelModal);
         document.getElementById('cancelExcel').addEventListener('click', closeExcelModal);
@@ -1059,10 +1062,13 @@
         fileDropZone.addEventListener('dragover', (e) => { e.preventDefault(); fileDropZone.classList.add('dragover'); });
         fileDropZone.addEventListener('dragleave', () => { fileDropZone.classList.remove('dragover'); });
         fileDropZone.addEventListener('drop', (e) => {
-            e.preventDefault(); fileDropZone.classList.remove('dragover');
+            e.preventDefault(); 
+            fileDropZone.classList.remove('dragover');
+            console.log('[Import] File dropped. Files:', e.dataTransfer.files.length);
             if (e.dataTransfer.files.length > 0) handleExcelFile(e.dataTransfer.files[0]);
         });
         excelFileInput.addEventListener('change', (e) => {
+            console.log('[Import] File selected via input. Files:', e.target.files.length);
             if (e.target.files.length > 0) handleExcelFile(e.target.files[0]);
         });
 
@@ -1070,6 +1076,7 @@
         // STEP 1: Read file & detect sheets
         // ==========================================
         function handleExcelFile(file) {
+            console.log('[Import] handleExcelFile called with:', file.name, file.size, 'bytes');
             const validExtensions = ['.xlsx', '.xls', '.csv'];
             const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
             if (!validExtensions.includes(ext)) {
@@ -1083,41 +1090,52 @@
 
             const reader = new FileReader();
             reader.onload = (e) => {
+                console.log('[Import] File read successfully, size:', e.target.result.byteLength);
                 try {
                     progressFill.style.width = '30%';
                     progressText.textContent = 'Parsing workbook...';
 
-                    // Use setTimeout to allow UI update before heavy parsing
                     setTimeout(() => {
-                        const data = new Uint8Array(e.target.result);
-                        // For large files, use cellStyles:false and cellNF:false to reduce memory
-                        currentWorkbook = XLSX.read(data, { 
-                            type: 'array',
-                            cellStyles: false,
-                            cellNF: false,
-                            cellDates: true
-                        });
+                        try {
+                            const data = new Uint8Array(e.target.result);
+                            console.log('[Import] Parsing with XLSX.read...');
+                            currentWorkbook = XLSX.read(data, { 
+                                type: 'array',
+                                cellStyles: false,
+                                cellNF: false,
+                                cellDates: true
+                            });
+                            console.log('[Import] Workbook parsed. Sheets:', currentWorkbook.SheetNames);
 
-                        progressFill.style.width = '50%';
-                        progressText.textContent = 'Analyzing sheets...';
+                            progressFill.style.width = '50%';
+                            progressText.textContent = 'Analyzing sheets...';
 
-                        setTimeout(() => {
-                            uploadProgress.style.display = 'none';
-                            progressText.style.display = 'none';
+                            setTimeout(() => {
+                                uploadProgress.style.display = 'none';
+                                progressText.style.display = 'none';
 
-                            if (currentWorkbook.SheetNames.length > 1) {
-                                showSheetSelector();
-                            } else {
-                                processSheet(currentWorkbook.SheetNames[0]);
-                            }
-                        }, 100);
+                                if (currentWorkbook.SheetNames.length > 1) {
+                                    console.log('[Import] Multiple sheets detected, showing selector');
+                                    showSheetSelector();
+                                } else {
+                                    console.log('[Import] Single sheet, processing:', currentWorkbook.SheetNames[0]);
+                                    processSheet(currentWorkbook.SheetNames[0]);
+                                }
+                            }, 100);
+                        } catch (parseErr) {
+                            console.error('[Import] XLSX.parse error:', parseErr);
+                            showToast('Error parsing Excel file: ' + parseErr.message, 'error');
+                            resetExcelModal();
+                        }
                     }, 50);
                 } catch (err) {
+                    console.error('[Import] File read error:', err);
                     showToast('Error parsing Excel file: ' + err.message, 'error');
                     resetExcelModal();
                 }
             };
-            reader.onerror = () => {
+            reader.onerror = (err) => {
+                console.error('[Import] FileReader error:', err);
                 showToast('Error reading file', 'error');
                 resetExcelModal();
             };
@@ -1160,61 +1178,35 @@
         // STEP 2: Process selected sheet (chunked for 40k+)
         // ==========================================
         function processSheet(sheetName) {
+            console.log('[Import] processSheet called for:', sheetName);
             try {
                 const worksheet = currentWorkbook.Sheets[sheetName];
-
-                // For large sheets, parse in chunks to avoid blocking UI
                 const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
                 const totalRows = range.e.r - range.s.r;
+                console.log('[Import] Sheet range:', range, 'Total rows:', totalRows);
 
                 if (totalRows > 50000) {
-                    showToast(`Warning: Sheet has ${totalRows.toLocaleString()} rows. This may take a moment.`, 'warning');
+                    showToast('Warning: Sheet has ' + totalRows.toLocaleString() + ' rows. This may take a moment.', 'warning');
                 }
 
-                // Parse header row first
-                const headerRange = { s: { r: range.s.r, c: range.s.c }, e: { r: range.s.r, c: range.e.c } };
-                const headerWorksheet = Object.assign({}, worksheet, { '!ref': XLSX.utils.encode_range(headerRange) });
-                const headerData = XLSX.utils.sheet_to_json(headerWorksheet, { header: 1, defval: '' });
+                console.log('[Import] Converting sheet to JSON...');
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+                console.log('[Import] JSON rows:', jsonData.length, 'First row (headers):', jsonData[0]);
 
-                if (headerData.length === 0 || headerData[0].length === 0) {
+                if (jsonData.length === 0 || jsonData[0].length === 0) {
                     showToast('Sheet appears to be empty', 'error');
                     resetExcelModal(); return;
                 }
 
-                pendingExcelHeaders = headerData[0].map(h => String(h).trim());
+                pendingExcelHeaders = jsonData[0].map(h => String(h).trim());
+                pendingExcelRows = jsonData.slice(1).filter(row => row.some(cell => cell !== '' && cell !== null && cell !== undefined));
+                console.log('[Import] Headers:', pendingExcelHeaders);
+                console.log('[Import] Valid data rows:', pendingExcelRows.length);
 
-                // Parse data rows in chunks using requestAnimationFrame for UI responsiveness
-                pendingExcelRows = [];
-                const chunkSize = 5000;
-                let currentRow = range.s.r + 1; // Skip header
-
-                function parseChunk() {
-                    const endRow = Math.min(currentRow + chunkSize - 1, range.e.r);
-                    const chunkRange = { 
-                        s: { r: currentRow, c: range.s.c }, 
-                        e: { r: endRow, c: range.e.c } 
-                    };
-                    const chunkWorksheet = Object.assign({}, worksheet, { '!ref': XLSX.utils.encode_range(chunkRange) });
-                    const chunkData = XLSX.utils.sheet_to_json(chunkWorksheet, { header: 1, defval: '' });
-
-                    // Filter out completely empty rows
-                    const validRows = chunkData.filter(row => row.some(cell => cell !== '' && cell !== null && cell !== undefined));
-                    pendingExcelRows.push(...validRows);
-
-                    currentRow = endRow + 1;
-
-                    if (currentRow <= range.e.r) {
-                        // More chunks to parse - schedule next chunk
-                        requestAnimationFrame(parseChunk);
-                    } else {
-                        // All chunks parsed - show mapping
-                        showColumnMappingStep();
-                    }
-                }
-
-                parseChunk();
+                showColumnMappingStep();
 
             } catch (err) {
+                console.error('[Import] processSheet error:', err);
                 showToast('Error reading sheet: ' + err.message, 'error');
                 resetExcelModal();
             }
@@ -1284,6 +1276,7 @@
         // STEP 3: Chunked Import with Progress
         // ==========================================
         document.getElementById('confirmImport').addEventListener('click', () => {
+            console.log('[Import] Confirm Import clicked');
             // Validate mappings
             const selects = document.querySelectorAll('.mapping-select');
             let missingFields = [];
@@ -1295,8 +1288,10 @@
                 else { columnMapping[field] = colName; }
             });
 
+            console.log('[Import] Column mapping:', columnMapping);
+
             if (missingFields.length > 0) {
-                showToast(`Please map all fields. Missing: ${missingFields.join(', ')}`, 'warning'); return;
+                showToast('Please map all fields. Missing: ' + missingFields.join(', '), 'warning'); return;
             }
 
             // Build column index map
@@ -1304,6 +1299,7 @@
             Object.entries(columnMapping).forEach(([field, colName]) => {
                 columnIndexMap[field] = pendingExcelHeaders.indexOf(colName);
             });
+            console.log('[Import] Column index map:', columnIndexMap);
 
             // Show progress UI
             document.getElementById('excelStep2').style.display = 'none';
@@ -1317,7 +1313,7 @@
 
             // Process in chunks to keep UI responsive
             const importedRecords = [];
-            const chunkSize = 2000;
+            const chunkSize = totalRows <= 5000 ? totalRows : 2000;
             let processedCount = 0;
             let skippedCount = 0;
             const startTime = Date.now();
@@ -1362,13 +1358,12 @@
                 const rate = elapsed > 0 ? Math.round(processedCount / elapsed) : 0;
                 document.getElementById('importStatRate').textContent = rate.toLocaleString();
                 document.getElementById('importStatusText').textContent = 
-                    `Processing ${processedCount.toLocaleString()} of ${totalRows.toLocaleString()} rows...`;
+                    'Processing ' + processedCount.toLocaleString() + ' of ' + totalRows.toLocaleString() + ' rows...';
 
                 if (processedCount < totalRows) {
-                    // Schedule next chunk
-                    requestAnimationFrame(processImportChunk);
+                    setTimeout(processImportChunk, 0);
                 } else {
-                    // Import complete
+                    console.log('[Import] Processing complete. Records:', importedRecords.length, 'Skipped:', skippedCount);
                     finishImport(importedRecords, skippedCount, elapsed);
                 }
             }
@@ -1377,6 +1372,7 @@
         });
 
         function finishImport(importedRecords, skippedCount, elapsed) {
+            console.log('[Import] finishImport called. Records:', importedRecords.length);
             if (importedRecords.length === 0) {
                 showToast('No valid records found in the Excel file', 'error');
                 resetExcelModal(); return;
@@ -1391,11 +1387,15 @@
             document.getElementById('reloadDemoBtn').style.display = 'none';
             document.getElementById('saveToExcelBtn').style.display = 'inline-flex';
 
+            console.log('[Import] Updating grid... gridApi exists:', !!gridApi);
             if (gridApi) {
                 applyFilters();
                 updateTabCounts();
                 updateStats();
                 populateMachineDropdown();
+                console.log('[Import] Grid updated successfully');
+            } else {
+                console.warn('[Import] gridApi not available yet');
             }
 
             document.getElementById('excelStep3').style.display = 'none';
@@ -1450,7 +1450,7 @@
                         }
 
                         if (endIdx < totalRows) {
-                            requestAnimationFrame(() => buildSaveChunk(endIdx));
+                            setTimeout(() => buildSaveChunk(endIdx), 0);
                         } else {
                             const worksheet = XLSX.utils.json_to_sheet(exportData);
                             const colWidths = [
@@ -1532,7 +1532,7 @@ document.getElementById('reloadDemoBtn').addEventListener('click', () => {
                         }
 
                         if (endIdx < totalRows) {
-                            requestAnimationFrame(() => buildExportChunk(endIdx));
+                            setTimeout(() => buildExportChunk(endIdx), 0);
                         } else {
                             // All data built - create file
                             const worksheet = XLSX.utils.json_to_sheet(exportData);
@@ -1754,6 +1754,7 @@ document.getElementById('reloadDemoBtn').addEventListener('click', () => {
                 document.getElementById('gridLoading').classList.remove('active');
             }
         }
+
 document.addEventListener('DOMContentLoaded', async () => {
             initTheme();
             document.getElementById('gridLoading').classList.add('active');
