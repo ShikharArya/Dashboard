@@ -775,7 +775,7 @@
             { field: 'clientId', headerName: 'Client ID', width: 120, filter: 'agTextColumnFilter', floatingFilter: true, editable: true },
             { field: 'orderNo', headerName: 'Order No', width: 140, filter: 'agTextColumnFilter', floatingFilter: true, editable: true },
             { field: 'invoiceId', headerName: 'Invoice ID', width: 130, filter: 'agTextColumnFilter', floatingFilter: true, editable: true },
-            { field: 'invoiceDate', headerName: 'Invoice Date', width: 140, filter: 'agDateColumnFilter', floatingFilter: true, editable: true,
+            { field: 'invoiceDate', headerName: 'Shipment Date', width: 140, filter: 'agDateColumnFilter', floatingFilter: true, editable: true,
                 valueFormatter: (params) => {
                     if (!params.value) return '';
                     const d = new Date(params.value);
@@ -1005,7 +1005,7 @@
 
         const REQUIRED_FIELDS = {
             clientName: 'Client Name', clientId: 'Client ID', orderNo: 'Order No',
-            invoiceId: 'Invoice ID', invoiceDate: 'Invoice Date',
+            invoiceId: 'Invoice ID', invoiceDate: 'Shipment Date',
             machinePartsName: 'Machine/Parts Name', partsId: 'Parts ID',
             sellingPrice: 'Selling Price',
             customerType: 'Customer Type', industry: 'Industry', type: 'Type'
@@ -1684,7 +1684,7 @@ document.getElementById('reloadDemoBtn').addEventListener('click', () => {
                     clientId: ['client id', 'clientid', 'customer id', 'customerid', 'id', 'client_id', 'customer_id'],
                     orderNo: ['order no', 'orderno', 'order number', 'order_no', 'order #', 'order'],
                     invoiceId: ['invoice id', 'invoiceid', 'invoice number', 'invoice_no', 'invoice#', 'invoice'],
-                    invoiceDate: ['invoice date', 'invoicedate', 'bill date', 'billing date', 'invoice_date'],
+                    invoiceDate: ['shipment date','invoice date', 'invoicedate', 'bill date', 'billing date', 'invoice_date'],
                     machinePartsName: ['machine parts name', 'machinepartsname', 'machine/part', 'machine parts', 'machineparts', 'machine_name', 'parts name', 'machine model'],
                     partsId: ['parts id', 'partsid', 'part id', 'part_id', 'parts_id', 'part number', 'partnumber'],
                     sellingPrice: ['selling price', 'sellingprice', 'price', 'amount', 'cost', 'unit price', 'selling_price'],
